@@ -4,3 +4,4 @@ langchain-openai
 beautifulsoup4
 python-dotenv
 chromadb
+pinecone-client==2.2.4

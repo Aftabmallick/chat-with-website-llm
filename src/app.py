@@ -2,14 +2,21 @@ import streamlit as st
 from langchain_core.messages import AIMessage,HumanMessage
 from langchain_community.document_loaders import WebBaseLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Chroma
+from langchain_community.vectorstores import Chroma,Pinecone
+import pinecone
 from langchain_openai import OpenAIEmbeddings,ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate,MessagesPlaceholder
 from langchain.chains import create_history_aware_retriever,create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from dotenv import load_dotenv
 load_dotenv()
+import os
 
+pinecone.init(
+    api_key=os.getenv('PINECONE_API_KEY'),
+    environment=os.getenv('PINECONE_ENVIRONMENT')
+)
+index_name =os.getenv('PINECONE_INDEX_NAME')
 
 def get_vectorstore_from_url(url):
     #get the text in document form
@@ -20,7 +27,8 @@ def get_vectorstore_from_url(url):
     text_splitter = RecursiveCharacterTextSplitter()
     document_chunks=text_splitter.split_documents(document)
     #create a vector store from the chunks
-    vector_store = Chroma.from_documents(document_chunks,OpenAIEmbeddings())
+    
+    vector_store = Pinecone.from_documents(document_chunks,OpenAIEmbeddings(),index_name=index_name)
     return vector_store
 def get_context_retriever_chain(vector_store):
     llm = ChatOpenAI()
