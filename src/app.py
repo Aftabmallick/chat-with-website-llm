@@ -14,7 +14,7 @@ import os
 
 
 
-def get_vectorstore_from_url(url):
+def get_vectorstore_from_url(url,opkey,index_name,delete=0):
     #get the text in document form
     loader = WebBaseLoader(url)
     document = loader.load()
@@ -23,11 +23,12 @@ def get_vectorstore_from_url(url):
     text_splitter = RecursiveCharacterTextSplitter()
     document_chunks=text_splitter.split_documents(document)
     #create a vector store from the chunks
-    
-    vector_store = Pinecone.from_documents(document_chunks,OpenAIEmbeddings(),index_name=index_name)
+    vector_store = Pinecone.from_documents(document_chunks,OpenAIEmbeddings(openai_api_key=opkey),index_name=index_name)
+    if delete ==1:
+        vector_store.delete(delete_all=True)
     return vector_store
-def get_context_retriever_chain(vector_store):
-    llm = ChatOpenAI(openai_api_key)
+def get_context_retriever_chain(vector_store,opkey):
+    llm = ChatOpenAI(openai_api_key=opkey)
 
     retriever = vector_store.as_retriever()
     prompt = ChatPromptTemplate.from_messages([
@@ -38,8 +39,8 @@ def get_context_retriever_chain(vector_store):
     retriever_chain = create_history_aware_retriever(llm,retriever,prompt)
     return retriever_chain
 
-def get_conversational_rag_chain(retriever_chain):
-    llm = ChatOpenAI(openai_api_key)
+def get_conversational_rag_chain(retriever_chain,opkey):
+    llm = ChatOpenAI(openai_api_key=opkey)
     prompt = ChatPromptTemplate.from_messages([
         ("system","Answer the user's questions based on the below context:\n\n{context}"),
         MessagesPlaceholder(variable_name="chat_history"),
@@ -51,8 +52,8 @@ def get_conversational_rag_chain(retriever_chain):
 
 def get_response(user_input):
     #create conversation chain
-    retriever_chain = get_context_retriever_chain(st.session_state.vector_store)
-    convesation_rag_chain=get_conversational_rag_chain(retriever_chain)
+    retriever_chain = get_context_retriever_chain(st.session_state.vector_store,openai_api_key)
+    convesation_rag_chain=get_conversational_rag_chain(retriever_chain,openai_api_key)
     response = convesation_rag_chain.invoke({
             "chat_history":st.session_state.chat_history,
             "input":user_query
@@ -84,6 +85,9 @@ with st.sidebar:
             pinecone_init(openai_api_key,pinecone_api_key,pinecone_environment,index_name)
 with st.sidebar:
     website_url=st.text_input("Website URL")
+    delete=st.button("Delete Indexs")
+    if delete:
+        get_vectorstore_from_url(website_url,openai_api_key,index_name,delete=1)
 
 if website_url is None or website_url=="":
     st.info("Please enter all details")
@@ -94,7 +98,7 @@ else:
             AIMessage(content = "Hello I am a bot, How can I help you?"),
         ]
     if "vector_store" not in st.session_state:
-        st.session_state.vector_store = get_vectorstore_from_url(website_url)
+        st.session_state.vector_store = get_vectorstore_from_url(website_url,openai_api_key,index_name)
         
     
     #user input
