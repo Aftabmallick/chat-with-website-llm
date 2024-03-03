@@ -27,7 +27,7 @@ def get_vectorstore_from_url(url):
     vector_store = Pinecone.from_documents(document_chunks,OpenAIEmbeddings(),index_name=index_name)
     return vector_store
 def get_context_retriever_chain(vector_store):
-    llm = ChatOpenAI()
+    llm = ChatOpenAI(openai_api_key)
 
     retriever = vector_store.as_retriever()
     prompt = ChatPromptTemplate.from_messages([
@@ -39,7 +39,7 @@ def get_context_retriever_chain(vector_store):
     return retriever_chain
 
 def get_conversational_rag_chain(retriever_chain):
-    llm = ChatOpenAI()
+    llm = ChatOpenAI(openai_api_key)
     prompt = ChatPromptTemplate.from_messages([
         ("system","Answer the user's questions based on the below context:\n\n{context}"),
         MessagesPlaceholder(variable_name="chat_history"),
