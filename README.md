@@ -68,7 +68,7 @@ Contributions to this project are welcome! If you'd like to contribute, please f
 For any inquiries or feedback, feel free to reach out to the project maintainer:
 
 - **Name:** [Aftab Mallick](https://github.com/Aftabmallick)
-- **Email:** [example@example.com](mailto:aftabmallick000@gmail.com)
+- **Email:** [aftabmallick000@gmail.com](mailto:aftabmallick000@gmail.com)
 
 We hope you find this tool useful and look forward to your contributions! Happy analyzing!
 ## 🔗 Links
