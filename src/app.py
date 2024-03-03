@@ -9,14 +9,10 @@ from langchain_core.prompts import ChatPromptTemplate,MessagesPlaceholder
 from langchain.chains import create_history_aware_retriever,create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from dotenv import load_dotenv
-load_dotenv()
+#load_dotenv()
 import os
 
-pinecone.init(
-    api_key=os.getenv('PINECONE_API_KEY'),
-    environment=os.getenv('PINECONE_ENVIRONMENT')
-)
-index_name =os.getenv('PINECONE_INDEX_NAME')
+
 
 def get_vectorstore_from_url(url):
     #get the text in document form
@@ -63,6 +59,13 @@ def get_response(user_input):
             })
     return response['answer']
 
+def pinecone_init(openai_api_key,pinecone_api_key,pinecone_environment,index_name):
+    pinecone.init(
+        api_key=pinecone_api_key,
+        environment=pinecone_environment
+    )
+    index_name=index_name
+
 #app config
 st.set_page_config(page_title="Chat With Websites",page_icon="")
 
@@ -70,11 +73,20 @@ st.title("Chat With Website")
 
 #side bar
 with st.sidebar:
-    st.header("Settings")
+    with st.form("my"):
+        st.header("Settings")
+        openai_api_key=st.text_input("OpenAi Api Key")
+        pinecone_api_key=st.text_input("Pinecone Api Key")
+        pinecone_environment=st.text_input("Pinecone Environment Name")
+        index_name=st.text_input("Pinecone Index Name")
+        submitted = st.form_submit_button("Submit")
+        if submitted:
+            pinecone_init(openai_api_key,pinecone_api_key,pinecone_environment,index_name)
+with st.sidebar:
     website_url=st.text_input("Website URL")
 
 if website_url is None or website_url=="":
-    st.info("Please enter a website URL")
+    st.info("Please enter all details")
 else:
     #session state
     if "chat_history" not in st.session_state:
